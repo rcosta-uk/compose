@@ -1,0 +1,42 @@
+# +------------------------------------------------------------------------------------+
+# |                                                                                    |
+# |  ██╗  ██╗ ██████╗ ███╗   ███╗███████╗██╗      █████╗ ██████╗    ██╗   ██╗██╗  ██╗  |
+# |  ██║  ██║██╔═████╗████╗ ████║██╔════╝██║     ██╔══██╗██╔══██╗   ██║   ██║██║ ██╔╝  |
+# |  ███████║██║██╔██║██╔████╔██║█████╗  ██║     ███████║██████╔╝   ██║   ██║█████╔╝   |
+# |  ██╔══██║████╔╝██║██║╚██╔╝██║██╔══╝  ██║     ██╔══██║██╔══██╗   ██║   ██║██╔═██╗   |
+# |  ██║  ██║╚██████╔╝██║ ╚═╝ ██║███████╗███████╗██║  ██║██████╔╝██╗╚██████╔╝██║  ██╗  |
+# |  ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝╚═════╝ ╚═╝ ╚═════╝ ╚═╝  ╚═╝  |
+# |                                                                                    |
+# +------------------------------------------------------------------------------------+
+
+services:
+  cloudflare-ddns:
+    image: favonia/cloudflare-ddns:latest
+
+    restart: always
+    cap_add:
+      - SETUID
+      - SETGID
+        # Capability to change user and group ID; needed for using PGID
+    cap_drop:
+      - all
+    env_file:
+      - /env/cf-ddns.env
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.role == worker]
+
+    network_mode: host
+
+    read_only: true
+    # Make the container filesystem read-only
+    security_opt:
+      - no-new-privileges:true
+        # Another protection to restrict superuser privileges
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/London
